@@ -76,23 +76,19 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           version="${GITHUB_REF_NAME#v}"
-          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}" \
-            --jq '.assets[] | [.url, .name] | @tsv' |
-          while IFS=$'\t' read -r api_url name; do
-            id="${api_url##*/}"
-            case "$name" in
-              "_${version}_aarch64.dmg")
-                new_name="像境工坊_${version}_aarch64.dmg"
-                ;;
-              "_${version}_x64.dmg")
-                new_name="像境工坊_${version}_x64.dmg"
-                ;;
-              "_${version}_x64-setup.exe")
-                new_name="像境工坊_${version}_x64-setup.exe"
-                ;;
-              *)
-                continue
-                ;;
-            esac
-            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/assets/${id}" -f name="${new_name}" >/dev/null
-          done
+          mkdir release-assets
+
+          rename_asset() {
+            old_name="$1"
+            new_name="$2"
+            if gh release view "${GITHUB_REF_NAME}" --json assets --jq ".assets[].name" | grep -Fxq "${old_name}"; then
+              gh release download "${GITHUB_REF_NAME}" --pattern "${old_name}" --dir release-assets
+              mv "release-assets/${old_name}" "release-assets/${new_name}"
+              gh release delete-asset "${GITHUB_REF_NAME}" "${old_name}" -y
+              gh release upload "${GITHUB_REF_NAME}" "release-assets/${new_name}" --clobber
+            fi
+          }
+
+          rename_asset "_${version}_aarch64.dmg" "Xiangjing-Workshop_${version}_aarch64.dmg"
+          rename_asset "_${version}_x64.dmg" "Xiangjing-Workshop_${version}_x64.dmg"
+          rename_asset "_${version}_x64-setup.exe" "Xiangjing-Workshop_${version}_x64-setup.exe"
