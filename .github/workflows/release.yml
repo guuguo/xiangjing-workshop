@@ -64,3 +64,35 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  rename-assets:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Rename release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}" \
+            --jq '.assets[] | [.url, .name] | @tsv' |
+          while IFS=$'\t' read -r api_url name; do
+            id="${api_url##*/}"
+            case "$name" in
+              "_${version}_aarch64.dmg")
+                new_name="像境工坊_${version}_aarch64.dmg"
+                ;;
+              "_${version}_x64.dmg")
+                new_name="像境工坊_${version}_x64.dmg"
+                ;;
+              "_${version}_x64-setup.exe")
+                new_name="像境工坊_${version}_x64-setup.exe"
+                ;;
+              *)
+                continue
+                ;;
+            esac
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/assets/${id}" -f name="${new_name}" >/dev/null
+          done
