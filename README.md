@@ -53,16 +53,16 @@ npm run tauri:build
 
 仓库内置 GitHub Actions：
 
-- 推送 `v*` 标签时自动构建并创建 GitHub Release 草稿。
-- macOS：构建 Apple Silicon 和 Intel 产物。
-- Windows：构建 Windows 安装包。
-- 当前未内置正式代码签名和 Apple notarization。公开分发时，macOS 下载后可能提示无法验证；正式无提示分发需要 Developer ID 证书、公证凭证，以及 Windows 代码签名证书。
+- 推送 `v*` 标签时自动构建并发布 GitHub Release。
+- macOS：构建 Apple Silicon 和 Intel 的 DMG。
+- Windows：构建 NSIS 安装包。
+- 当前 macOS 使用 ad-hoc 签名，适合测试分发，但不等于 Apple notarization。公开下载后若要完全避免 Gatekeeper 的“无法验证 / 包损坏”类提示，需要 Developer ID Application 证书和 Apple 公证；Windows 若要减少 SmartScreen 提示，需要代码签名证书。
 
 发布示例：
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 ## 隐私说明

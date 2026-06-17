@@ -17,13 +17,13 @@ jobs:
         include:
           - platform: macos-latest
             rust_target: aarch64-apple-darwin
-            args: --target aarch64-apple-darwin
+            args: --target aarch64-apple-darwin --bundles dmg
           - platform: macos-latest
             rust_target: x86_64-apple-darwin
-            args: --target x86_64-apple-darwin
+            args: --target x86_64-apple-darwin --bundles dmg
           - platform: windows-latest
             rust_target: ""
-            args: ""
+            args: --bundles nsis
 
     runs-on: ${{ matrix.platform }}
 
@@ -61,6 +61,6 @@ jobs:
             自动构建的桌面安装包。
 
             注意：当前工作流未配置 Apple Developer ID 公证或 Windows 代码签名证书，下载后可能需要按系统提示手动允许运行。
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
